@@ -1,0 +1,156 @@
+:root {
+  --bg: #16130f;
+  --card: #221d17;
+  --line: #3a3128;
+  --text: #ede4d6;
+  --muted: #a8998a;
+  --accent: #d4a24c;
+  font-family: "Georgia", "Iowan Old Style", serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+h1 {
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+h2,
+h3,
+h4 {
+  margin: 0 0 0.5rem;
+}
+
+h4 {
+  margin-top: 1rem;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0.25rem 0 0.75rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  width: 100%;
+}
+
+button {
+  background: var(--accent);
+  color: #1a140c;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  width: auto;
+}
+
+.creator {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.creator label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.sheets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stats,
+.abilities {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.stats {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.abilities {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.stat,
+.ability {
+  display: grid;
+  justify-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.2rem;
+  font-size: 0.85rem;
+}
+
+.stat .muted,
+.ability .muted {
+  margin: 0;
+  font-size: 0.7rem;
+}
+
+ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.inventory {
+  columns: 2;
+}
