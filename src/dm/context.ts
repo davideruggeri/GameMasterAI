@@ -70,7 +70,8 @@ export function buildSystemPrompt(opts: {
   return [
     DM_INSTRUCTIONS,
     `## PARAMETRI DELLA PARTITA\nEtà: ${setup.ages}. Esperienza: ${setup.experience}. Tema: ${setup.theme}. Durata: ${setup.duration}. Richieste particolari: ${setup.specialRequests || "nessuna"}.`,
-    `## AVVENTURA SEGRETA (non rivelarla)\n${JSON.stringify(adventure)}`,
+    `## AVVENTURA SEGRETA (non rivelarla)\n${JSON.stringify(adventure)}` +
+      (adventure.world ? "" : "\n\n(I dettagli di location, incontri e trappole sono in preparazione: improvvisa con coerenza finché non arrivano.)"),
     `## RIASSUNTO DELLA STORIA FINORA\n${summary || "La partita sta per iniziare."}`,
     `## STATO DI GIOCO ATTUALE\n${describeState(state)}`,
   ].join("\n\n");
