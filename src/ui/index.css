@@ -1,3 +1,16 @@
+.save-status {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+.save-status--saving { background: #3a3128; color: var(--muted); }
+.save-status--saved  { background: #1e3a1e; color: #7ec87e; }
+.save-status--error  { background: #3a1e1e; color: #e07070; }
+
 :root {
   --bg: #16130f;
   --card: #221d17;
