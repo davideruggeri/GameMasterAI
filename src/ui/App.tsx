@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createCharacter, createGameState, type Character, type GameState } from "../engine";
-import { generateAdventureCore, generateAdventureWorld } from "../dm/adventure";
+import { generateAdventure } from "../dm/adventure";
 import { runDmTurn, type DmSession } from "../dm/turn";
 import { maybeSummarize } from "../dm/summarizer";
 import type { Setup } from "../dm/setup";
@@ -75,9 +75,7 @@ export default function App() {
     try {
       const model = createModel(apiKey);
 
-      // Fase 1: genera solo il nucleo (veloce)
-      const core = await generateAdventureCore(model, setup);
-      const adventure = { ...core };
+      const adventure = await generateAdventure(model, setup);
       const gs = createGameState(characters);
 
       let session: DmSession = { setup, adventure, summary: "", turns: [] };
@@ -91,21 +89,6 @@ export default function App() {
       setDmSession(session);
       setPhase("playing");
       scheduleSave(stateRef.current, session);
-
-      // Fase 2: genera il mondo in background mentre si gioca
-      generateAdventureWorld(model, setup, core)
-        .then((world) => {
-          const fullAdventure = { ...core, world };
-          setDmSession((prev) => {
-            if (!prev) return prev;
-            const updated: DmSession = { ...prev, adventure: fullAdventure };
-            scheduleSave(stateRef.current, updated);
-            return updated;
-          });
-        })
-        .catch(() => {
-          // il DM continuerà ad improvvisare senza i dettagli del mondo
-        });
     } catch (e) {
       setGenError(e instanceof Error ? e.message : "Errore durante la generazione.");
       setPhase("lobby");

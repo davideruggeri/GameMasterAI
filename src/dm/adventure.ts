@@ -125,7 +125,7 @@ const CORE_PROMPT =
 
 const WORLD_PROMPT =
   "Genera il mondo dell'avventura: location, incontri, trappole, enigmi, PNG, tesori, colpo di scena e finali. " +
-  "Mantieni coerenza con il nucleo già definito.";
+  "Sii coerente con il tema e i parametri della partita.";
 
 export async function generateAdventureCore(model: LanguageModel, setup: Setup): Promise<AdventureCore> {
   const { object } = await generateObject({
@@ -137,16 +137,20 @@ export async function generateAdventureCore(model: LanguageModel, setup: Setup):
   return object;
 }
 
-export async function generateAdventureWorld(
-  model: LanguageModel,
-  setup: Setup,
-  core: AdventureCore,
-): Promise<AdventureWorld> {
+export async function generateAdventureWorld(model: LanguageModel, setup: Setup): Promise<AdventureWorld> {
   const { object } = await generateObject({
     model,
     schema: AdventureWorldSchema,
     system: ADVENTURE_DESIGN_PROMPT + "\n\n" + WORLD_PROMPT,
-    prompt: `Parametri della partita:\n${JSON.stringify(setup, null, 2)}\n\nNucleo già generato:\n${JSON.stringify(core, null, 2)}`,
+    prompt: `Parametri della partita:\n${JSON.stringify(setup, null, 2)}`,
   });
   return object;
+}
+
+export async function generateAdventure(model: LanguageModel, setup: Setup): Promise<Adventure> {
+  const [core, world] = await Promise.all([
+    generateAdventureCore(model, setup),
+    generateAdventureWorld(model, setup),
+  ]);
+  return { ...core, world };
 }
