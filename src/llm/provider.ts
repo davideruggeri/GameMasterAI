@@ -6,7 +6,7 @@ import type { LanguageModel } from "ai";
 // il resto dell'app usa solo l'interfaccia LanguageModel dell'AI SDK.
 
 /** Modello Gemini del free tier di Google AI Studio. Controlla gli id attuali su ai.google.dev. */
-export const DEFAULT_MODEL_ID = "gemini-3.8-flash";
+export const DEFAULT_MODEL_ID = "gemini-3.5-flash-lite";
 
 export function createModel(apiKey: string, modelId: string = DEFAULT_MODEL_ID): LanguageModel {
   return createGoogleGenerativeAI({ apiKey })(modelId);

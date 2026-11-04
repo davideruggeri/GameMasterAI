@@ -129,7 +129,7 @@ export default function App() {
 
           <section className="card">
             <h2>Chiave API</h2>
-            <p className="muted">Chiave gratuita di Google AI Studio. Resta salvata solo in questo browser.</p>
+            <p className="muted">Chiave gratuita di <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Google AI Studio</a>. Resta salvata solo in questo browser.</p>
             <input
               type="password"
               value={apiKey}
