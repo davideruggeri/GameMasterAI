@@ -82,12 +82,22 @@ export default function GameScreen({ model, initialGameState, initialSession, on
     <div className="game-screen">
       <div className="chat-panel">
         <div className="chat" ref={chatRef}>
-          {session.turns.map((turn, i) => (
-            <div key={i} className={`chat-msg chat-msg--${turn.role}`}>
-              <span className="chat-role">{turn.role === "assistant" ? "DM" : "Giocatori"}</span>
-              <p>{turn.content}</p>
-            </div>
-          ))}
+          {session.turns.map((turn, i) => {
+            const isDiceResult = turn.role === "user" && turn.content.startsWith("Tiri completati.");
+            if (isDiceResult) {
+              return (
+                <div key={i} className="chat-dice-result">
+                  🎲 {turn.content.replace(/^Tiri completati\.\s*/, "")}
+                </div>
+              );
+            }
+            return (
+              <div key={i} className={`chat-msg chat-msg--${turn.role}`}>
+                <span className="chat-role">{turn.role === "assistant" ? "DM" : "Giocatori"}</span>
+                <p>{turn.content}</p>
+              </div>
+            );
+          })}
           {loading && (
             <div className="chat-msg chat-msg--loading">
               <span className="chat-role">DM</span>
