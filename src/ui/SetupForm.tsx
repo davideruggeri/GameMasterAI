@@ -6,19 +6,18 @@ interface Props {
   characters: Character[];
   disabled: boolean;
   onStart: (setup: Setup) => void;
+  onExternal: (setup: Setup) => void;
 }
 
-export default function SetupForm({ characters, disabled, onStart }: Props) {
+export default function SetupForm({ characters, disabled, onStart, onExternal }: Props) {
   const [ages, setAges] = useState("adulti");
   const [theme, setTheme] = useState("");
   const [experience, setExperience] = useState<Setup["experience"]>("misti");
   const [duration, setDuration] = useState("una serata");
   const [specialRequests, setSpecialRequests] = useState("");
 
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    if (!theme.trim()) return;
-    onStart({
+  function buildSetup(): Setup {
+    return {
       ages: ages.trim() || "adulti",
       theme: theme.trim(),
       experience,
@@ -31,7 +30,13 @@ export default function SetupForm({ characters, disabled, onStart }: Props) {
         race: c.race as Setup["characters"][0]["race"],
         class: c.class as Setup["characters"][0]["class"],
       })),
-    });
+    };
+  }
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!theme.trim()) return;
+    onStart(buildSetup());
   }
 
   return (
@@ -75,9 +80,19 @@ export default function SetupForm({ characters, disabled, onStart }: Props) {
         </label>
       </div>
 
-      <button className="btn-primary" type="submit" disabled={disabled || !theme.trim()}>
-        {disabled ? "Generazione in corso…" : "Genera avventura"}
-      </button>
+      <div className="setup-actions">
+        <button className="btn-primary" type="submit" disabled={disabled || !theme.trim()}>
+          {disabled ? "Generazione in corso…" : "Genera avventura"}
+        </button>
+        <button
+          type="button"
+          className="btn-external"
+          disabled={disabled || !theme.trim()}
+          onClick={() => { if (theme.trim()) onExternal(buildSetup()); }}
+        >
+          Crea con AI esterna ↗
+        </button>
+      </div>
     </form>
   );
 }

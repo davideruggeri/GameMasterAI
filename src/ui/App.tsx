@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createCharacter, createGameState, type Character, type GameState } from "../engine";
-import { generateAdventure } from "../dm/adventure";
+import { generateAdventure, type Adventure } from "../dm/adventure";
 import { runDmTurn, type DmSession } from "../dm/turn";
 import { maybeSummarize } from "../dm/summarizer";
 import type { Setup } from "../dm/setup";
@@ -9,6 +9,7 @@ import { loadGame, saveGame } from "../storage/db";
 import CharacterCreator, { type CreatorValues } from "./CharacterCreator";
 import CharacterSheet from "./CharacterSheet";
 import SetupForm from "./SetupForm";
+import AdventureImporter from "./AdventureImporter";
 import GameScreen from "./GameScreen";
 
 type Phase = "lobby" | "generating" | "playing";
@@ -21,6 +22,8 @@ export default function App() {
   const [dmSession, setDmSession] = useState<DmSession | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [externalSetup, setExternalSetup] = useState<Setup | null>(null);
+  const [importedAdventure, setImportedAdventure] = useState<Adventure | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -65,20 +68,19 @@ export default function App() {
     });
   }
 
-  async function startGame(setup: Setup) {
-    if (!apiKey) {
+  async function startGame(setup: Setup, adventure?: Adventure) {
+    if (!apiKey && !adventure) {
       setGenError("Inserisci prima la chiave API.");
       return;
     }
     setGenError(null);
     setPhase("generating");
     try {
-      const model = createModel(apiKey);
-
-      const adventure = await generateAdventure(model, setup);
+      const model = createModel(apiKey || "unused");
+      const resolvedAdventure = adventure ?? await generateAdventure(model, setup);
       const gs = createGameState(characters);
 
-      let session: DmSession = { setup, adventure, summary: "", turns: [] };
+      let session: DmSession = { setup, adventure: resolvedAdventure, summary: "", turns: [] };
       const stateRef = { current: gs };
       const store = { get: () => stateRef.current, set: (s: GameState) => { stateRef.current = s; } };
 
@@ -90,7 +92,7 @@ export default function App() {
       setPhase("playing");
       scheduleSave(stateRef.current, session);
     } catch (e) {
-      setGenError(e instanceof Error ? e.message : "Errore durante la generazione.");
+      setGenError(e instanceof Error ? e.message : "Errore durante l'avvio.");
       setPhase("lobby");
     }
   }
@@ -134,11 +136,42 @@ export default function App() {
                 ))}
               </section>
 
-              <SetupForm
-                characters={characters}
-                disabled={phase === "generating"}
-                onStart={startGame}
-              />
+              {importedAdventure ? (
+                <div className="card adventure-ready">
+                  <div className="adventure-ready__info">
+                    <span className="adventure-ready__label">Avventura pronta</span>
+                    <strong>{importedAdventure.title}</strong>
+                    <span className="muted">{importedAdventure.premise.slice(0, 120)}…</span>
+                  </div>
+                  <div className="adventure-ready__actions">
+                    <button
+                      className="btn-primary"
+                      disabled={phase === "generating" || !apiKey}
+                      onClick={() => externalSetup && startGame(externalSetup, importedAdventure)}
+                    >
+                      {phase === "generating" ? "Avvio in corso…" : "Inizia l'avventura"}
+                    </button>
+                    <button className="ghost" onClick={() => { setImportedAdventure(null); setExternalSetup(null); }}>
+                      Cambia avventura
+                    </button>
+                  </div>
+                  {!apiKey && <p className="gen-error" style={{ marginTop: "0.5rem" }}>Inserisci la chiave API per avviare la partita.</p>}
+                </div>
+              ) : externalSetup ? (
+                <AdventureImporter
+                  setup={externalSetup}
+                  characters={characters}
+                  onImport={(adv) => setImportedAdventure(adv)}
+                  onCancel={() => setExternalSetup(null)}
+                />
+              ) : (
+                <SetupForm
+                  characters={characters}
+                  disabled={phase === "generating"}
+                  onStart={startGame}
+                  onExternal={(setup) => setExternalSetup(setup)}
+                />
+              )}
             </>
           )}
 
@@ -146,7 +179,7 @@ export default function App() {
 
           {phase === "generating" && (
             <div className="generating">
-              <p>Il DM sta preparando l'avventura…</p>
+              <p>{importedAdventure ? "Il DM sta aprendo la sessione…" : "Il DM sta preparando l'avventura…"}</p>
               <div className="spinner" />
             </div>
           )}

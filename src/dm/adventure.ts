@@ -154,3 +154,140 @@ export async function generateAdventure(model: LanguageModel, setup: Setup): Pro
   ]);
   return { ...core, world };
 }
+
+// ---------------------------------------------------------------------------
+// Schema completo per importazione da AI esterna
+// ---------------------------------------------------------------------------
+
+export const AdventureSchema = AdventureCoreSchema.extend({ world: AdventureWorldSchema });
+
+// ---------------------------------------------------------------------------
+// Prompt da dare a Claude / ChatGPT / Gemini per generare l'avventura
+// ---------------------------------------------------------------------------
+
+export function buildAdventurePrompt(setup: Setup, characters: { name: string; player: string; race: string; class: string; level: number; abilities: Record<string, number>; hp: number; maxHp: number; ac: number }[]): string {
+  const charLines = characters
+    .map((c) => {
+      const ab = `FOR ${c.abilities.str} DES ${c.abilities.dex} COS ${c.abilities.con} INT ${c.abilities.int} SAG ${c.abilities.wis} CAR ${c.abilities.cha}`;
+      return `- ${c.name} (giocato da ${c.player}): ${c.race} ${c.class} lv.${c.level} — ${ab}, PV ${c.hp}/${c.maxHp}, CA ${c.ac}`;
+    })
+    .join("\n");
+
+  const namesExample = characters.map((c) => `{ "player": "${c.player}", "name": "${c.name}" }`).join(", ");
+
+  const schema = `{
+  "title": "Titolo evocativo",
+  "premise": "Situazione generale: cosa sta succedendo e perché i personaggi sono coinvolti",
+  "openingScene": "Scena d'apertura vivida: un evento misterioso o pericoloso che catapulta subito nell'azione",
+  "mainGoal": "Obiettivo principale chiaro e raggiungibile nella durata indicata",
+  "antagonist": {
+    "name": "Nome antagonista",
+    "motivation": "Perché fa quello che fa",
+    "powers": "Capacità principali",
+    "plan": ["Prima fase del piano", "Seconda fase", "Cosa succede se i PG non intervengono"]
+  },
+  "characterNames": [${namesExample}],
+  "world": {
+    "locations": [
+      {
+        "id": "loc_1",
+        "name": "Nome luogo",
+        "description": "Descrizione sensoriale: cosa si vede, sente, odora. 2-3 frasi.",
+        "connectedTo": ["loc_2"],
+        "secrets": ["Segreto nascosto qui, scopribile con esplorazione o prove"]
+      },
+      { "id": "loc_2", "name": "Secondo luogo", "description": "...", "connectedTo": ["loc_1", "loc_3"], "secrets": [] },
+      { "id": "loc_3", "name": "Terzo luogo", "description": "...", "connectedTo": ["loc_2"], "secrets": ["..."] }
+    ],
+    "puzzles": [
+      {
+        "locationId": "loc_1",
+        "description": "Cosa vedono i giocatori (es. 'quattro statue tengono oggetti diversi')",
+        "solution": "Soluzione corretta",
+        "alternativeSolutions": ["Modo creativo alternativo per risolverlo"],
+        "clues": ["Indizio visibile nell'ambiente", "Indizio in un'iscrizione vicina"]
+      }
+    ],
+    "traps": [
+      {
+        "locationId": "loc_2",
+        "trigger": "Cosa attiva la trappola (es. calpestare la pietra centrale)",
+        "detectDc": 15,
+        "disarmDc": 13,
+        "effect": "Cosa succede quando scatta",
+        "damage": "2d6"
+      }
+    ],
+    "encounters": [
+      {
+        "id": "enc_1",
+        "locationId": "loc_2",
+        "creatures": [
+          {
+            "name": "Nome creatura (SRD 5.1)",
+            "count": 2,
+            "maxHp": 13,
+            "ac": 13,
+            "initiativeBonus": 2,
+            "attacks": [
+              { "name": "Nome attacco", "toHit": 4, "damage": "1d6+2", "damageType": "perforante" }
+            ],
+            "tactics": "Come combatte: aggira, carica, usa il terreno"
+          }
+        ],
+        "avoidable": "Come evitare lo scontro (distrazione, furtività, dialogo)"
+      },
+      {
+        "id": "enc_2",
+        "locationId": "loc_3",
+        "creatures": [
+          { "name": "...", "count": 1, "maxHp": 26, "ac": 15, "initiativeBonus": 1, "attacks": [{ "name": "...", "toHit": 5, "damage": "2d6+3", "damageType": "tagliente" }], "tactics": "..." }
+        ],
+        "avoidable": "..."
+      }
+    ],
+    "npcs": [
+      {
+        "name": "Nome PNG",
+        "personality": "Tratto caratteristico e comportamento in una frase",
+        "knows": ["Informazione che rivela subito", "Segreto che rivela solo se convinto o ricompensato"],
+        "reward": "Cosa offre se aiutato (oggetto, informazione, favore)"
+      }
+    ],
+    "treasures": [
+      { "name": "Nome oggetto (SRD 5.1)", "locationId": "loc_3", "effect": "Effetto meccanico o narrativo" }
+    ],
+    "twist": {
+      "description": "Il colpo di scena principale della storia",
+      "clues": ["Indizio seminato prima che venga rivelato", "Secondo indizio"]
+    },
+    "endings": [
+      { "condition": "Se i PG sconfissero l'antagonista", "outcome": "Come finisce la storia" },
+      { "condition": "Se i PG fallirono o fuggirono", "outcome": "Conseguenze del fallimento" }
+    ]
+  }
+}`;
+
+  return `Sei un game designer esperto di D&D 5ª edizione (SRD 5.1). Progetta un'avventura fantasy completa in italiano.
+
+## PARAMETRI DELLA PARTITA
+Età dei giocatori: ${setup.ages}
+Esperienza con i GdR: ${setup.experience}
+Tema/ambientazione: ${setup.theme}
+Durata prevista: ${setup.duration}${setup.specialRequests ? `\nRichieste particolari: ${setup.specialRequests}` : ""}
+
+## PERSONAGGI
+${charLines}
+
+## ISTRUZIONI CRITICHE
+- Rispondi ESCLUSIVAMENTE con l'oggetto JSON. Zero testo prima o dopo — solo JSON grezzo.
+- Calibra la quantità di contenuto sulla durata: one-shot = 3 location, 2 incontri; campagna breve = 5+ location, 4+ incontri.
+- Usa SOLO creature e oggetti dell'SRD 5.1 (niente nomi Wizards of the Coast).
+- Il campo "damage" negli attacchi segue il formato "XdY" o "XdY+Z" (es. "1d6", "2d8+3").
+- I DC (difficoltà) seguono 5e: facile 10, medio 15, difficile 20.
+- Minimo assoluto: 3 location, 2 incontri, 1 enigma, 1 trappola, 2 finali.
+- Semina indizi del colpo di scena fin dall'inizio — non renderlo casuale.
+
+## SCHEMA JSON (da rispettare esattamente)
+${schema}`;
+}

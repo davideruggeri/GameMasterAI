@@ -195,6 +195,94 @@ ul {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Setup actions ── */
+.setup-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-external {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  width: auto;
+  padding: 0.6rem 1.2rem;
+  font-weight: normal;
+}
+.btn-external:hover:not(:disabled) { background: rgba(212,162,76,0.08); }
+
+/* ── Adventure importer ── */
+.adventure-importer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.adventure-importer__head h2 { margin: 0; }
+
+.importer-step {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.importer-step__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: bold;
+}
+.importer-step__actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.importer-step__actions button { width: auto; padding: 0.5rem 1.1rem; }
+
+.prompt-preview {
+  font-family: "Courier New", monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: #0e0c09;
+  border-color: var(--line);
+  resize: vertical;
+}
+.btn-copied {
+  background: #1e3a1e !important;
+  color: #7ec87e !important;
+}
+
+/* ── Adventure ready banner ── */
+.adventure-ready {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-color: var(--accent);
+}
+.adventure-ready__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+.adventure-ready__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.adventure-ready__actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+.adventure-ready__actions button { width: auto; }
+
 /* ── Game screen ── */
 main.main--playing {
   max-width: 100%;
