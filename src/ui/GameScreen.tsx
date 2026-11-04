@@ -6,6 +6,7 @@ import { runDmTurn, type DmSession } from "../dm/turn";
 import { maybeSummarize } from "../dm/summarizer";
 import type { GameStore } from "../dm/tools";
 import PendingRolls from "./PendingRolls";
+import CharacterSheet from "./CharacterSheet";
 
 interface Props {
   model: LanguageModel;
@@ -20,6 +21,7 @@ export default function GameScreen({ model, initialGameState, initialSession, on
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sideTab, setSideTab] = useState<"personaggi" | "dadi">("personaggi");
 
   const stateRef = useRef(initialGameState);
   const sessionRef = useRef(initialSession);
@@ -36,6 +38,10 @@ export default function GameScreen({ model, initialGameState, initialSession, on
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [session.turns.length]);
+
+  useEffect(() => {
+    setSideTab(gameState.pendingRolls.length > 0 ? "dadi" : "personaggi");
+  }, [gameState.pendingRolls.length]);
 
   async function sendTurn(text: string) {
     if (loading) return;
@@ -88,7 +94,14 @@ export default function GameScreen({ model, initialGameState, initialSession, on
               <p className="typing">…</p>
             </div>
           )}
-          {error && <p className="chat-error">{error} — <button className="link-btn" onClick={() => setError(null)}>Riprova</button></p>}
+          {error && (
+            <p className="chat-error">
+              {error} —{" "}
+              <button className="link-btn" onClick={() => setError(null)}>
+                Riprova
+              </button>
+            </p>
+          )}
         </div>
 
         <form className="game-input" onSubmit={handleSubmit}>
@@ -104,14 +117,37 @@ export default function GameScreen({ model, initialGameState, initialSession, on
         </form>
       </div>
 
-      {hasPending && (
-        <PendingRolls
-          rolls={gameState.pendingRolls}
-          characters={gameState.characters}
-          disabled={loading}
-          onSubmit={handleRollSubmit}
-        />
-      )}
+      <div className="side-panel">
+        <div className="side-tabs">
+          <button
+            className={sideTab === "personaggi" ? "active" : ""}
+            onClick={() => setSideTab("personaggi")}
+          >
+            Personaggi
+          </button>
+          <button
+            className={sideTab === "dadi" ? "active" : ""}
+            onClick={() => setSideTab("dadi")}
+            disabled={!hasPending}
+          >
+            {hasPending ? `Dadi (${gameState.pendingRolls.length})` : "Dadi"}
+          </button>
+        </div>
+
+        <div className="side-content">
+          {sideTab === "personaggi" &&
+            gameState.characters.map((c) => <CharacterSheet key={c.id} character={c} />)}
+
+          {sideTab === "dadi" && hasPending && (
+            <PendingRolls
+              rolls={gameState.pendingRolls}
+              characters={gameState.characters}
+              disabled={loading}
+              onSubmit={handleRollSubmit}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
